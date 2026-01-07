@@ -2,15 +2,10 @@ import React from 'react';
 import { yNodes, yEdges } from '../lib/yjs';
 import { toMermaid } from '../lib/mermaid';
 import type { Node, Edge } from '@xyflow/react';
-import { Share2, Box, Circle, Square, CheckCircle } from 'lucide-react';
+import { Share2, Box, LayoutGrid, Clock, Settings, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Sidebar() {
-    const onDragStart = (event: React.DragEvent, nodeType: string) => {
-        event.dataTransfer.setData('application/reactflow', nodeType);
-        event.dataTransfer.effectAllowed = 'move';
-    };
-
     const handleExport = () => {
         const nodes = Array.from(yNodes.values()) as Node[];
         const edges = Array.from(yEdges.values()) as Edge[];
@@ -23,63 +18,53 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="w-72 h-full bg-slate-950 border-r border-slate-800 p-6 flex flex-col gap-8 shadow-2xl z-20">
+        <aside className="w-72 h-full bg-slate-900 border-r border-slate-800 p-6 flex flex-col gap-8 shadow-2xl z-20 overflow-y-auto">
             <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                     <Box className="text-white w-6 h-6" />
                 </div>
                 <div>
                     <h1 className="text-xl font-bold text-white tracking-tight">MindFlow AI</h1>
-                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Workspace</p>
+                    <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest">Creative Cloud</p>
                 </div>
             </div>
 
-            <div className="flex flex-col gap-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1">Library</p>
-                <div className="grid gap-3">
-                    <div
-                        className="group flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 hover:bg-slate-800 transition-all cursor-grab active:cursor-grabbing shadow-sm"
-                        onDragStart={(event) => onDragStart(event, 'input')}
-                        draggable
-                    >
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                            <Circle className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-medium text-slate-300 group-hover:text-white">Input Node</span>
-                    </div>
-
-                    <div
-                        className="group flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 transition-all cursor-grab active:cursor-grabbing shadow-sm"
-                        onDragStart={(event) => onDragStart(event, 'default')}
-                        draggable
-                    >
-                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-slate-700 group-hover:text-white transition-colors">
-                            <Square className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-medium text-slate-300 group-hover:text-white">Brainstorm Node</span>
-                    </div>
-
-                    <div
-                        className="group flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-800 transition-all cursor-grab active:cursor-grabbing shadow-sm"
-                        onDragStart={(event) => onDragStart(event, 'output')}
-                        draggable
-                    >
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                            <CheckCircle className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-medium text-slate-300 group-hover:text-white">Result Node</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="mt-auto pt-6 border-t border-slate-800/50">
-                <button
-                    onClick={handleExport}
-                    className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 px-4 rounded-xl transition-all border border-slate-700 hover:border-slate-600 shadow-lg active:scale-95"
-                >
-                    <Share2 className="w-4 h-4 text-blue-400" />
-                    <span>Export Mermaid</span>
+            <nav className="flex flex-col gap-2">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-2">Workspace</p>
+                <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-sm transition-all hover:bg-indigo-600/20">
+                    <LayoutGrid className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Active Board</span>
                 </button>
+                <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all group">
+                    <Clock className="w-4 h-4 group-hover:text-indigo-400" />
+                    <span className="text-sm font-medium">History</span>
+                </button>
+                <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all group">
+                    <Settings className="w-4 h-4 group-hover:text-indigo-400" />
+                    <span className="text-sm font-medium">Board Settings</span>
+                </button>
+            </nav>
+
+            <div className="mt-auto flex flex-col gap-6">
+                <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+                    <div className="flex items-center gap-2 mb-2">
+                        <HelpCircle className="w-4 h-4 text-indigo-400" />
+                        <span className="text-xs font-bold text-white">Need help?</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                        Drag shapes from the left toolbar to start building your mind flow.
+                    </p>
+                </div>
+
+                <div className="pt-6 border-t border-slate-800/50">
+                    <button
+                        onClick={handleExport}
+                        className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-500/10 active:scale-95 border border-indigo-500/50"
+                    >
+                        <Share2 className="w-4 h-4" />
+                        <span>Export Map</span>
+                    </button>
+                </div>
             </div>
         </aside>
     );

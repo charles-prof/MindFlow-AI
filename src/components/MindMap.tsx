@@ -17,6 +17,7 @@ import type { Connection, Edge, Node, NodeChange, EdgeChange } from '@xyflow/rea
 import '@xyflow/react/dist/style.css';
 import { yNodes, yEdges } from '../lib/yjs';
 import Sidebar from './Sidebar';
+import Toolbar from './Toolbar';
 import { db } from '../db/client';
 import { maps } from '../db/schema';
 import { getOrCreateUser } from '../lib/db-utils';
@@ -155,6 +156,8 @@ function MindMapContent() {
             event.preventDefault();
 
             const type = event.dataTransfer.getData('application/reactflow');
+            const shape = event.dataTransfer.getData('application/shape');
+
             if (typeof type === 'undefined' || !type) {
                 return;
             }
@@ -168,7 +171,7 @@ function MindMapContent() {
                 id: crypto.randomUUID(),
                 type,
                 position,
-                data: { label: `${type} node` },
+                data: { label: `New ${shape || 'Idea'}`, shape: shape || 'pill' },
             };
 
             yNodes.set(newNode.id, newNode);
@@ -204,16 +207,7 @@ function MindMapContent() {
         });
     }, [onEdgesChange]);
 
-    const onAddNode = useCallback(() => {
-        const id = crypto.randomUUID();
-        const newNode: Node = {
-            id,
-            position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
-            data: { label: `New Node` },
-            type: 'default',
-        };
-        yNodes.set(id, newNode);
-    }, []);
+
 
     const handleSaveDB = useCallback(async () => {
         try {
@@ -237,9 +231,10 @@ function MindMapContent() {
     }, []);
 
     return (
-        <div className="flex h-screen w-screen bg-slate-900 text-slate-200">
+        <div className="flex h-screen w-screen bg-slate-950 text-slate-200 overflow-hidden">
             <Sidebar />
-            <div className="flex-1 h-full" ref={reactFlowWrapper}>
+            <div className="flex-1 h-full relative" ref={reactFlowWrapper}>
+                <Toolbar />
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -251,8 +246,10 @@ function MindMapContent() {
                     onDrop={onDrop}
                     fitView
                     connectionLineType={ConnectionLineType.Bezier}
-                    connectionLineStyle={{ stroke: '#94a3b8', strokeWidth: 2 }}
+                    connectionLineStyle={{ stroke: '#3b82f6', strokeWidth: 2 }}
                     proOptions={{ hideAttribution: true }}
+                    snapToGrid={true}
+                    snapGrid={[20, 20]}
                 >
                     <Controls className="bg-slate-800 border-slate-700 fill-slate-200" />
                     <MiniMap
@@ -267,16 +264,13 @@ function MindMapContent() {
                         color="#334155"
                         className="bg-slate-950"
                     />
-                    <Panel position="top-right" className="flex gap-3 p-2">
-                        <button onClick={() => onLayout('LR')} className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-medium py-2 px-4 rounded-xl shadow-lg transition-all duration-200 text-sm">
+                    <Panel position="top-right" className="flex gap-3 p-4">
+                        <button onClick={() => onLayout('LR')} className="bg-slate-900/80 backdrop-blur-md hover:bg-slate-800 text-slate-200 border border-slate-700 font-medium py-2 px-4 rounded-xl shadow-xl transition-all duration-200 text-sm">
                             Auto Layout
                         </button>
-                        <button onClick={handleSaveDB} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-4 rounded-xl shadow-lg transition-all duration-200 text-sm flex items-center gap-2">
+                        <button onClick={handleSaveDB} className="bg-emerald-500/10 backdrop-blur-md hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-4 rounded-xl shadow-xl transition-all duration-200 text-sm flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Save
-                        </button>
-                        <button onClick={onAddNode} className="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm">
-                            + Node
+                            Save Map
                         </button>
                     </Panel>
                 </ReactFlow>
