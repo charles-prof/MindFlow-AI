@@ -6,16 +6,13 @@ import {
     Background,
     useNodesState,
     useEdgesState,
-    Connection,
-    Edge,
-    Node,
     BackgroundVariant,
     Panel,
     ReactFlowProvider,
     useReactFlow,
 } from '@xyflow/react';
+import type { Connection, Edge, Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import * as Y from 'yjs';
 import { yNodes, yEdges } from '../lib/yjs';
 import Sidebar from './Sidebar';
 import { db } from '../db/client';
@@ -28,8 +25,8 @@ const getEdgesFromY = () => Array.from(yEdges.values()) as Edge[];
 
 function MindMapContent() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const { screenToFlowPosition } = useReactFlow();
 
     // Sync initial state and revisions
@@ -57,7 +54,7 @@ function MindMapContent() {
 
     const onConnect = useCallback(
         (params: Connection) => {
-            const newEdge = { ...params, id: `e${params.source}-${params.target}` };
+            const newEdge: Edge = { ...params, id: `e${params.source}-${params.target}` };
             yEdges.set(newEdge.id, newEdge);
         },
         []

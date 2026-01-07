@@ -1,7 +1,7 @@
 import React from 'react';
 import { yNodes, yEdges } from '../lib/yjs';
 import { toMermaid } from '../lib/mermaid';
-import { Node, Edge } from '@xyflow/react';
+import type { Node, Edge } from '@xyflow/react';
 
 export default function Sidebar() {
     const onDragStart = (event: React.DragEvent, nodeType: string) => {

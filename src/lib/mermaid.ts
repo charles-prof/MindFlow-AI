@@ -1,4 +1,4 @@
-import { Edge, Node } from '@xyflow/react';
+import type { Edge, Node } from '@xyflow/react';
 
 const sanitizeLabel = (label: string) => {
     return label.replace(/["\n\r]/g, ' ');

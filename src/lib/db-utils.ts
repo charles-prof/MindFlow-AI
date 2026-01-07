@@ -1,6 +1,6 @@
 import { db } from '../db/client';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
+// import { eq } from 'drizzle-orm';
 
 export const getOrCreateUser = async () => {
     const existing = await db.select().from(users).limit(1);
