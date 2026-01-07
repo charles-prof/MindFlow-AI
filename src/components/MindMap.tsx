@@ -179,16 +179,15 @@ function MindMapContent() {
                     <Controls />
                     <MiniMap />
                     <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-                    <Panel position="top-right" className="flex gap-2">
-                        <Panel position="top-right" className="flex gap-3 p-2">
-                            <button onClick={handleSaveDB} className="bg-white/90 backdrop-blur-sm text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border border-emerald-200 font-semibold py-2 px-4 rounded-xl shadow-sm transition-all duration-200 text-sm flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Save Snapshot
-                            </button>
-                            <button onClick={onAddNode} className="bg-gray-900 hover:bg-black text-white font-semibold py-2 px-4 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm">
-                                + Add Node
-                            </button>
-                        </Panel>
+                    <Panel position="top-right" className="flex gap-3 p-2">
+                        <button onClick={handleSaveDB} className="bg-white/90 backdrop-blur-sm text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border border-emerald-200 font-semibold py-2 px-4 rounded-xl shadow-sm transition-all duration-200 text-sm flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Save Snapshot
+                        </button>
+                        <button onClick={onAddNode} className="bg-gray-900 hover:bg-black text-white font-semibold py-2 px-4 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm">
+                            + Add Node
+                        </button>
+                    </Panel>
                 </ReactFlow>
             </div>
         </div>
