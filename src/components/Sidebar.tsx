@@ -3,6 +3,8 @@ import { yNodes, yEdges } from '../lib/yjs';
 import { toMermaid } from '../lib/mermaid';
 import type { Node, Edge } from '@xyflow/react';
 
+import { toast } from 'sonner';
+
 export default function Sidebar() {
     const onDragStart = (event: React.DragEvent, nodeType: string) => {
         event.dataTransfer.setData('application/reactflow', nodeType);
@@ -14,7 +16,9 @@ export default function Sidebar() {
         const edges = Array.from(yEdges.values()) as Edge[];
         const mermaid = toMermaid(nodes, edges);
         navigator.clipboard.writeText(mermaid).then(() => {
-            alert('Mermaid syntax copied to clipboard!');
+            toast.success('Mermaid syntax copied to clipboard!', {
+                description: 'You can now paste it into a Mermaid Live Editor.'
+            });
         });
     };
 

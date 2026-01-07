@@ -18,6 +18,7 @@ import Sidebar from './Sidebar';
 import { db } from '../db/client';
 import { maps } from '../db/schema';
 import { getOrCreateUser } from '../lib/db-utils';
+import { toast } from 'sonner';
 
 // Helper to convert YMap to Array
 const getNodesFromY = () => Array.from(yNodes.values()) as Node[];
@@ -154,10 +155,10 @@ function MindMapContent() {
                 content: content,
             }).returning();
 
-            alert('Saved snapshot to local PGlite database!');
+            toast.success('Saved snapshot to local PGlite database!');
         } catch (e) {
             console.error(e);
-            alert('Failed to save to database: ' + (e as any).message);
+            toast.error('Failed to save to database: ' + (e as any).message);
         }
     }, []);
 
