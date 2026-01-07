@@ -11,10 +11,9 @@ import {
     ReactFlowProvider,
     useReactFlow,
     ConnectionLineType,
-    NodeChange,
-    EdgeChange,
+    Position,
 } from '@xyflow/react';
-import type { Connection, Edge, Node } from '@xyflow/react';
+import type { Connection, Edge, Node, NodeChange, EdgeChange } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { yNodes, yEdges } from '../lib/yjs';
 import Sidebar from './Sidebar';
@@ -60,12 +59,10 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => 
     return {
         nodes: nodes.map((node) => {
             const nodeWithPosition = dagreGraph.node(node.id);
-            const newNode = {
+            const newNode: Node = {
                 ...node,
-                targetPosition: isHorizontal ? 'left' : 'top',
-                sourcePosition: isHorizontal ? 'right' : 'bottom',
-                // We are shifting the dagre node position (anchor=center center) to the top left
-                // so it matches the React Flow node anchor point (top left).
+                targetPosition: isHorizontal ? Position.Left : Position.Top,
+                sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
                 position: {
                     x: nodeWithPosition.x - nodeWidth / 2,
                     y: nodeWithPosition.y - nodeHeight / 2,
@@ -184,7 +181,7 @@ function MindMapContent() {
         onNodesChange(changes); // Update local view immediately
 
         changes.forEach((change) => {
-            if (change.type === 'position' && change.dragging) {
+            if (change.type === 'position' && change.dragging && change.position) {
                 const node = yNodes.get(change.id) as Node;
                 if (node && node.position) {
                     const updated = { ...node, position: change.position };
@@ -233,9 +230,9 @@ function MindMapContent() {
             }).returning();
 
             toast.success('Saved snapshot to local PGlite database!');
-        } catch (e) {
+        } catch (e: unknown) {
             console.error(e);
-            toast.error('Failed to save to database: ' + (e as any).message);
+            toast.error('Failed to save to database: ' + (e instanceof Error ? e.message : String(e)));
         }
     }, []);
 
