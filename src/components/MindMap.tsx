@@ -23,6 +23,16 @@ import { getOrCreateUser } from '../lib/db-utils';
 const getNodesFromY = () => Array.from(yNodes.values()) as Node[];
 const getEdgesFromY = () => Array.from(yEdges.values()) as Edge[];
 
+import { MindMapNode } from './MindMapNode';
+
+const nodeTypes = {
+    mindMap: MindMapNode,
+    default: MindMapNode,
+    input: MindMapNode,
+    output: MindMapNode,
+};
+
+
 function MindMapContent() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -161,6 +171,7 @@ function MindMapContent() {
                     onNodesChange={handleNodesChange}
                     onEdgesChange={handleEdgesChange}
                     onConnect={onConnect}
+                    nodeTypes={nodeTypes}
                     onDragOver={onDragOver}
                     onDrop={onDrop}
                     fitView
