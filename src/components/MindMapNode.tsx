@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Handle, Position, NodeProps, Node } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
+import type { NodeProps, Node } from '@xyflow/react';
 import { yNodes } from '../lib/yjs';
 
 export function MindMapNode({ id, data, isConnectable }: NodeProps) {
