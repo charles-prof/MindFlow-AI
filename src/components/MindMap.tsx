@@ -10,6 +10,9 @@ import {
     Panel,
     ReactFlowProvider,
     useReactFlow,
+    ConnectionLineType,
+    NodeChange,
+    EdgeChange,
 } from '@xyflow/react';
 import type { Connection, Edge, Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -19,6 +22,7 @@ import { db } from '../db/client';
 import { maps } from '../db/schema';
 import { getOrCreateUser } from '../lib/db-utils';
 import { toast } from 'sonner';
+import dagre from 'dagre';
 
 // Helper to convert YMap to Array
 const getNodesFromY = () => Array.from(yNodes.values()) as Node[];
@@ -33,12 +37,79 @@ const nodeTypes = {
     output: MindMapNode,
 };
 
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+const nodeWidth = 180;
+const nodeHeight = 50;
+
+const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => {
+    const isHorizontal = direction === 'LR';
+    dagreGraph.setGraph({ rankdir: direction });
+
+    nodes.forEach((node) => {
+        dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    });
+
+    edges.forEach((edge) => {
+        dagreGraph.setEdge(edge.source, edge.target);
+    });
+
+    dagre.layout(dagreGraph);
+
+    return {
+        nodes: nodes.map((node) => {
+            const nodeWithPosition = dagreGraph.node(node.id);
+            const newNode = {
+                ...node,
+                targetPosition: isHorizontal ? 'left' : 'top',
+                sourcePosition: isHorizontal ? 'right' : 'bottom',
+                // We are shifting the dagre node position (anchor=center center) to the top left
+                // so it matches the React Flow node anchor point (top left).
+                position: {
+                    x: nodeWithPosition.x - nodeWidth / 2,
+                    y: nodeWithPosition.y - nodeHeight / 2,
+                },
+            };
+
+            return newNode;
+        }),
+        edges,
+    };
+};
 
 function MindMapContent() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-    const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, fitView } = useReactFlow();
+
+    const onLayout = useCallback(
+        (direction: string) => {
+            const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+                getNodesFromY(), // Use latest from Yjs
+                getEdgesFromY(), // Use latest from Yjs
+                direction
+            );
+
+            // Update Yjs (shared state) with new positions
+            layoutedNodes.forEach((node) => {
+                const existing = yNodes.get(node.id) as Node;
+                if (existing) {
+                    yNodes.set(node.id, { ...existing, position: node.position });
+                }
+            });
+
+            // Local update (optional, but good for responsiveness)
+            setNodes([...layoutedNodes]);
+            setEdges([...layoutedEdges]);
+
+            window.requestAnimationFrame(() => {
+                fitView();
+            });
+        },
+        [fitView, setNodes, setEdges]
+    );
 
     // Sync initial state and revisions
     useEffect(() => {
@@ -65,7 +136,13 @@ function MindMapContent() {
 
     const onConnect = useCallback(
         (params: Connection) => {
-            const newEdge: Edge = { ...params, id: `e${params.source}-${params.target}` };
+            const newEdge: Edge = {
+                ...params,
+                id: `e${params.source}-${params.target}`,
+                type: 'bezier', // Smooth curves
+                animated: true,
+                style: { stroke: '#64748b', strokeWidth: 2 },
+            };
             yEdges.set(newEdge.id, newEdge);
         },
         []
@@ -103,13 +180,13 @@ function MindMapContent() {
     );
 
     // Sync local changes to Yjs
-    const handleNodesChange = useCallback((changes: any) => {
+    const handleNodesChange = useCallback((changes: NodeChange[]) => {
         onNodesChange(changes); // Update local view immediately
 
-        changes.forEach((change: any) => {
+        changes.forEach((change) => {
             if (change.type === 'position' && change.dragging) {
                 const node = yNodes.get(change.id) as Node;
-                if (node) {
+                if (node && node.position) {
                     const updated = { ...node, position: change.position };
                     if (node.position.x !== change.position.x || node.position.y !== change.position.y) {
                         yNodes.set(change.id, updated);
@@ -121,9 +198,9 @@ function MindMapContent() {
         });
     }, [onNodesChange]);
 
-    const handleEdgesChange = useCallback((changes: any) => {
+    const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
         onEdgesChange(changes);
-        changes.forEach((change: any) => {
+        changes.forEach((change) => {
             if (change.type === 'remove') {
                 yEdges.delete(change.id);
             }
@@ -135,7 +212,7 @@ function MindMapContent() {
         const newNode: Node = {
             id,
             position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
-            data: { label: `Node ${yNodes.size + 1}` },
+            data: { label: `New Node` },
             type: 'default',
         };
         yNodes.set(id, newNode);
@@ -163,7 +240,7 @@ function MindMapContent() {
     }, []);
 
     return (
-        <div className="flex h-screen w-screen">
+        <div className="flex h-screen w-screen bg-slate-900 text-slate-200">
             <Sidebar />
             <div className="flex-1 h-full" ref={reactFlowWrapper}>
                 <ReactFlow
@@ -176,17 +253,33 @@ function MindMapContent() {
                     onDragOver={onDragOver}
                     onDrop={onDrop}
                     fitView
+                    connectionLineType={ConnectionLineType.Bezier}
+                    connectionLineStyle={{ stroke: '#94a3b8', strokeWidth: 2 }}
+                    proOptions={{ hideAttribution: true }}
                 >
-                    <Controls />
-                    <MiniMap />
-                    <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+                    <Controls className="bg-slate-800 border-slate-700 fill-slate-200" />
+                    <MiniMap
+                        className="!bg-slate-800 border-slate-700"
+                        nodeColor='#64748b'
+                        maskColor='rgba(15, 23, 42, 0.6)'
+                    />
+                    <Background
+                        variant={BackgroundVariant.Dots}
+                        gap={20}
+                        size={1}
+                        color="#334155"
+                        className="bg-slate-950"
+                    />
                     <Panel position="top-right" className="flex gap-3 p-2">
-                        <button onClick={handleSaveDB} className="bg-white/90 backdrop-blur-sm text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border border-emerald-200 font-semibold py-2 px-4 rounded-xl shadow-sm transition-all duration-200 text-sm flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Save Snapshot
+                        <button onClick={() => onLayout('LR')} className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-medium py-2 px-4 rounded-xl shadow-lg transition-all duration-200 text-sm">
+                            Auto Layout
                         </button>
-                        <button onClick={onAddNode} className="bg-gray-900 hover:bg-black text-white font-semibold py-2 px-4 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm">
-                            + Add Node
+                        <button onClick={handleSaveDB} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium py-2 px-4 rounded-xl shadow-lg transition-all duration-200 text-sm flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Save
+                        </button>
+                        <button onClick={onAddNode} className="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm">
+                            + Node
                         </button>
                     </Panel>
                 </ReactFlow>
