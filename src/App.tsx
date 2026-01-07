@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import MindMap from './components/MindMap';
 import './index.css';
 
