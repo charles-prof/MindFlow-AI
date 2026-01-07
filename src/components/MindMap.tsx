@@ -10,6 +10,7 @@ import {
     Edge,
     Node,
     BackgroundVariant,
+    Panel,
     ReactFlowProvider,
     useReactFlow,
 } from '@xyflow/react';
@@ -17,6 +18,9 @@ import '@xyflow/react/dist/style.css';
 import * as Y from 'yjs';
 import { yNodes, yEdges } from '../lib/yjs';
 import Sidebar from './Sidebar';
+import { db } from '../db/client';
+import { maps } from '../db/schema';
+import { getOrCreateUser } from '../lib/db-utils';
 
 // Helper to convert YMap to Array
 const getNodesFromY = () => Array.from(yNodes.values()) as Node[];
@@ -118,6 +122,37 @@ function MindMapContent() {
         });
     }, [onEdgesChange]);
 
+    const onAddNode = useCallback(() => {
+        const id = crypto.randomUUID();
+        const newNode: Node = {
+            id,
+            position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
+            data: { label: `Node ${yNodes.size + 1}` },
+            type: 'default',
+        };
+        yNodes.set(id, newNode);
+    }, []);
+
+    const handleSaveDB = useCallback(async () => {
+        try {
+            const user = await getOrCreateUser();
+            const content = {
+                nodes: getNodesFromY(),
+                edges: getEdgesFromY(),
+            };
+
+            await db.insert(maps).values({
+                title: `Map ${new Date().toISOString()}`,
+                ownerId: user.id,
+                content: content,
+            }).returning();
+
+            alert('Saved snapshot to local PGlite database!');
+        } catch (e) {
+            console.error(e);
+            alert('Failed to save to database: ' + (e as any).message);
+        }
+    }, []);
 
     return (
         <div className="flex h-screen w-screen">
@@ -136,6 +171,14 @@ function MindMapContent() {
                     <Controls />
                     <MiniMap />
                     <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+                    <Panel position="top-right" className="flex gap-2">
+                        <button onClick={handleSaveDB} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                            Save to DB
+                        </button>
+                        <button onClick={onAddNode} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Add Node
+                        </button>
+                    </Panel>
                 </ReactFlow>
             </div>
         </div>
