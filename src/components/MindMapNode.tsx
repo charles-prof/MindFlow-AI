@@ -66,7 +66,7 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
     const accentColor = borderColors[shape as keyof typeof borderColors] || '#94a3b8';
 
     // Handle styling - consistent and visible in both modes
-    const mapHandleStyle = (pos: string) => {
+    const mapHandleStyle = () => {
         const isSelectedOrHovered = selected || isHovered;
         const baseStyle = "transition-all duration-300 flex items-center justify-center !border-slate-200 dark:!border-slate-700 !bg-white dark:!bg-slate-900 !shadow-sm hover:!scale-125 z-50";
         const visibilityStyle = isSelectedOrHovered ? "opacity-100" : "opacity-0 scale-50 pointer-events-none";
@@ -167,7 +167,7 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
             <Handle
                 type="target"
                 position={Position.Left}
-                className={mapHandleStyle('left')}
+                className={mapHandleStyle()}
                 style={shape === 'diamond' ? { left: `-${diamondHandleOffset}px` } : { left: '-12px' }}
             >
                 <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />
@@ -175,7 +175,7 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
             <Handle
                 type="source"
                 position={Position.Right}
-                className={mapHandleStyle('right')}
+                className={mapHandleStyle()}
                 style={shape === 'diamond' ? { right: `-${diamondHandleOffset}px` } : { right: '-12px' }}
             >
                 <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />
@@ -183,7 +183,7 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
             <Handle
                 type="target"
                 position={Position.Top}
-                className={mapHandleStyle('top')}
+                className={mapHandleStyle()}
                 style={shape === 'diamond' ? { top: `-${diamondHandleOffset}px` } : { top: '-12px' }}
             >
                 <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />
@@ -191,7 +191,7 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
             <Handle
                 type="source"
                 position={Position.Bottom}
-                className={mapHandleStyle('bottom')}
+                className={mapHandleStyle()}
                 style={shape === 'diamond' ? { bottom: `-${diamondHandleOffset}px` } : { bottom: '-12px' }}
             >
                 <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />

@@ -155,15 +155,28 @@ function MindMapContent() {
 
     const onConnect = useCallback(
         (params: Connection) => {
+            const sourceNode = yNodes.get(params.source) as Node;
+            const shape = sourceNode?.data?.shape as string || 'pill';
+            const borderColors = {
+                pill: '#3b82f6',
+                circle: '#ef4444',
+                diamond: '#10b981',
+                rectangle: '#f59e0b',
+                'rounded-rectangle': '#8b5cf6',
+            };
+            const color = borderColors[shape as keyof typeof borderColors] || '#3b82f6';
+
             const newEdge: Edge = {
                 ...params,
                 id: `e${params.source}-${params.target}-${crypto.randomUUID().slice(0, 8)}`,
                 type: 'mindMap',
+                data: { color },
             };
             yEdges.set(newEdge.id, newEdge);
         },
         []
     );
+
 
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();

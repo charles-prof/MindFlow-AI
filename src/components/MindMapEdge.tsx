@@ -11,8 +11,8 @@ export default function MindMapEdge({
     style = {},
     markerEnd,
     selected,
+    data,
 }: EdgeProps) {
-    // Use a balanced curvature for all shape connections
     const [edgePath] = getBezierPath({
         sourceX,
         sourceY,
@@ -20,8 +20,10 @@ export default function MindMapEdge({
         targetX,
         targetY,
         targetPosition,
-        curvature: 0.5, // Slightly less curved for better clarity between different shapes
+        curvature: 0.5,
     });
+
+    const edgeColor = (data?.color as string) || 'var(--text-muted)';
 
     return (
         <BaseEdge
@@ -31,9 +33,9 @@ export default function MindMapEdge({
             style={{
                 ...style,
                 strokeWidth: selected ? 3 : 2,
-                stroke: selected ? 'var(--accent-color)' : 'var(--text-muted)',
+                stroke: selected ? 'var(--accent-color)' : edgeColor,
                 strokeLinecap: 'round',
-                opacity: selected ? 1 : 0.4,
+                opacity: selected ? 1 : 0.6,
                 transition: 'all 0.2s ease',
             }}
         />
