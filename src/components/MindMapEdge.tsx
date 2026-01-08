@@ -13,6 +13,7 @@ export default function MindMapEdge({
     selected,
     data,
 }: EdgeProps) {
+    // Balanced curved path for the organic "AFFINE" aesthetic
     const [edgePath] = getBezierPath({
         sourceX,
         sourceY,
@@ -20,7 +21,7 @@ export default function MindMapEdge({
         targetX,
         targetY,
         targetPosition,
-        curvature: 0.5,
+        curvature: 0.65, // More organic curve as seen in BlockSuite/AFFINE
     });
 
     const edgeColor = (data?.color as string) || 'var(--text-muted)';
@@ -36,7 +37,7 @@ export default function MindMapEdge({
                 stroke: selected ? 'var(--accent-color)' : edgeColor,
                 strokeLinecap: 'round',
                 opacity: selected ? 1 : 0.6,
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
         />
     );
