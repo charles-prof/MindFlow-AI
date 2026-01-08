@@ -19,7 +19,6 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
 
     const onDelete = useCallback(() => {
         yNodes.delete(id);
-        // Find and delete associated edges
         const edgesToDelete = Array.from(yEdges.keys()).filter(edgeId => {
             const edge = yEdges.get(edgeId);
             return edge?.source === id || edge?.target === id;
@@ -53,8 +52,8 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
     };
 
     const innerContentStyles = shape === 'diamond'
-        ? '-rotate-45 text-center flex items-center justify-center w-full h-full'
-        : 'w-full h-full flex flex-col items-center justify-center py-1';
+        ? '-rotate-45 text-center flex items-center justify-center w-full h-full p-2'
+        : 'w-full h-full flex flex-col items-center justify-center py-2 px-3';
 
     const borderColors = {
         pill: '#3b82f6', // Blue
@@ -65,6 +64,25 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
     };
 
     const accentColor = borderColors[shape as keyof typeof borderColors] || '#94a3b8';
+
+    // Handle styling - consistent and visible in both modes
+    const mapHandleStyle = (pos: string) => {
+        const isSelectedOrHovered = selected || isHovered;
+        const baseStyle = "transition-all duration-300 flex items-center justify-center !border-slate-200 dark:!border-slate-700 !bg-white dark:!bg-slate-900 !shadow-sm hover:!scale-125 z-50";
+        const visibilityStyle = isSelectedOrHovered ? "opacity-100" : "opacity-0 scale-50 pointer-events-none";
+
+        return twMerge(
+            baseStyle,
+            visibilityStyle,
+            "!w-6 !h-6 !rounded-full !border-[1px]"
+        );
+    };
+
+    // Calculate handle offsets for Diamond
+    // For a 96px side square rotated 45 deg, the corners are at approx 20px from the bounding box edge of the unrotated square
+    // But React Flow handles center on the edge of the *component* bounding box.
+    // If the component has w-full h-full, we need to position them relative to center.
+    const diamondHandleOffset = 22; // px
 
     return (
         <div
@@ -77,7 +95,7 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
         >
             {/* Contextual Action Bar */}
             <div className={twMerge(
-                "absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl transition-all duration-200 z-50",
+                "absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl transition-all duration-300 z-50",
                 isHovered || selected ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
             )}>
                 <button className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 text-blue-500 font-bold text-[11px] uppercase tracking-wider rounded-md transition-colors">
@@ -95,8 +113,6 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
                     >
                         <MoreHorizontal size={14} />
                     </button>
-
-                    {/* Ellipsis Menu */}
                     <div className={twMerge(
                         "absolute top-full right-0 mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl z-50 overflow-hidden transition-all duration-200",
                         showMenu ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
@@ -115,7 +131,7 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
             {/* Shape Container */}
             <div
                 className={twMerge(
-                    "relative z-10 bg-white dark:bg-slate-900 border-[2px] transition-all duration-300 flex items-center justify-center overflow-hidden",
+                    "relative z-10 bg-white dark:bg-slate-900 border-[2px] transition-all duration-300 flex items-center justify-center",
                     getShapeStyles(),
                     selected
                         ? "shadow-[0_0_0_4px_rgba(59,130,246,0.15)] scale-[1.02]"
@@ -137,45 +153,49 @@ export function MindMapNode({ id, data, isConnectable, selected }: NodeProps) {
                         placeholder="Text"
                     />
                 </div>
-
-                {/* Left/Right + expansion anchors - now with improved theme visibility */}
-                {(isHovered || selected) && (
-                    <>
-                        <div className="absolute -left-6 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100 transition-opacity p-1 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-100 dark:border-slate-800">
-                            <Plus size={14} className="text-slate-500 dark:text-slate-400 cursor-pointer hover:text-blue-500 transition-colors" />
-                        </div>
-                        <div className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100 transition-opacity p-1 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-100 dark:border-slate-800">
-                            <Plus size={14} className="text-slate-500 dark:text-slate-400 cursor-pointer hover:text-blue-500 transition-colors" />
-                        </div>
-                    </>
-                )}
             </div>
 
-            {/* Handles - Adjusted for Shape Types especially Diamond */}
+            {/* Selection Glow */}
+            {selected && (
+                <div className={twMerge(
+                    "absolute inset-0 z-0 bg-blue-500/10 blur-2xl scale-110 transition-opacity",
+                    shape === 'pill' || shape === 'circle' ? 'rounded-full' : 'rounded-xl'
+                )} />
+            )}
+
+            {/* Handles - Redesigned to be visible connection points with icons */}
             <Handle
                 type="target"
                 position={Position.Left}
-                className="!opacity-0 !w-8 !h-8 !border-none !bg-transparent"
-                style={shape === 'diamond' ? { left: '-15px', top: '50%' } : { left: '-10px' }}
-            />
+                className={mapHandleStyle('left')}
+                style={shape === 'diamond' ? { left: `-${diamondHandleOffset}px` } : { left: '-12px' }}
+            >
+                <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />
+            </Handle>
             <Handle
                 type="source"
                 position={Position.Right}
-                className="!opacity-0 !w-8 !h-8 !border-none !bg-transparent"
-                style={shape === 'diamond' ? { right: '-15px', top: '50%' } : { right: '-10px' }}
-            />
+                className={mapHandleStyle('right')}
+                style={shape === 'diamond' ? { right: `-${diamondHandleOffset}px` } : { right: '-12px' }}
+            >
+                <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />
+            </Handle>
             <Handle
                 type="target"
                 position={Position.Top}
-                className="!opacity-0 !w-8 !h-8 !border-none !bg-transparent"
-                style={shape === 'diamond' ? { top: '-15px', left: '50%' } : { top: '-10px' }}
-            />
+                className={mapHandleStyle('top')}
+                style={shape === 'diamond' ? { top: `-${diamondHandleOffset}px` } : { top: '-12px' }}
+            >
+                <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />
+            </Handle>
             <Handle
                 type="source"
                 position={Position.Bottom}
-                className="!opacity-0 !w-8 !h-8 !border-none !bg-transparent"
-                style={shape === 'diamond' ? { bottom: '-15px', left: '50%' } : { bottom: '-10px' }}
-            />
+                className={mapHandleStyle('bottom')}
+                style={shape === 'diamond' ? { bottom: `-${diamondHandleOffset}px` } : { bottom: '-12px' }}
+            >
+                <Plus size={12} className="text-slate-400 dark:text-slate-500 pointer-events-none" />
+            </Handle>
         </div>
     );
 }
